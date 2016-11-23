@@ -136,50 +136,31 @@
 		      (width 680)
 		      (height 460)
 		      (title "Doodle2")
-;		      (background solid-black)
+		      (color solid-black)
 		      (fullscreen #f))
 
     (sdl2:set-main-ready!)
-    (sdl2:init! '(everything))
+    (sdl2:init! '(video))
 ;    (let-values ((window renderer (sdl2:create-window-and-renderer! width height -1 'opengl)))
-    (let-values ((window (sdl2:create-window! title -1 'opengl width height)))
-      (set! *w* window)
+    (set! *w* (sdl2:create-window! title 0 0 width height))
+;      (set! *w* window)
 ;      (set! *r* renderer)
-      (set! (sdl2:window-title *w*) title))
+    (set! (sdl2:window-title *w*) title)
 
     (set! doodle2-width width)
     (set! doodle2-height height)
 
-;    (current-background background)
+    (clear-screen color)
 
     (sdl2:update-window-surface! *w*))
-;    (gl:Flush)
-;    (sdl-gl-swap-buffers)
-    
 
-  ;; (define (clear-screen #!optional (color *current-background*))
-  ;;   (let ((width (cairo-image-surface-get-width *c-surface*))
-  ;; 	  (height (cairo-image-surface-get-height *c-surface*)))
-  ;;     (if (list? color)
-  ;; 	  (begin
-  ;; 	    (apply cairo-set-source-rgba (cons *c* color))
-  ;; 	    (doto *c*
-  ;; 		  (cairo-rectangle 0 0 width height)
-  ;; 		  (cairo-fill)
-  ;; 		  (cairo-stroke)))
-  ;; 	  (blit-image (string->symbol color) 0 0))))
-
-  (define (clear-screen)
-    (pp "clear-screen: todo")
-    ;(gl:Clear (+ gl:COLOR_BUFFER_BIT gl:DEPTH_BUFFER_BIT))
-    )
+  (define (clear-screen color)
+    (sdl2:fill-rect! (sdl2:window-surface *w*)
+		     #f
+		     (sdl2:make-color (car color) (car (cdr color)) (car (cddr color)) (car (cdddr color)))))
 	   
   (define (show!)
-
-    (sdl2:show-window! *w*)
-;    (gl:Flush)
-;    (sdl-gl-swap-buffers)
-    )
+    (sdl2:show-window! *w*))
 
 
   ;; Collision detection
@@ -240,19 +221,21 @@
 
   ;; Event stuff
 
-  (define (translate-mouse-event type event)
+  (define (translate-mouse-motion-event type event)
     (let ((x (sdl2:mouse-motion-event-x event))
-	  (y (sdl2:mouse-motion-event-y event)))
-      (if (equal? type sdl2-internals:SDL_MOUSEMOTION)
-	  (list 'mouse 'moved x y)
-	  (let ((b (sdl2:mouse-button-event-button event)))
-	    (list 'mouse
-		  (if (equal? type sdl2-internals:SDL_MOUSEBUTTONDOWN)
-		      'pressed 'released)
-		  x y b)))))
+    	  (y (sdl2:mouse-motion-event-y event)))
+      (if (equal? type 'mouse-motion)
+    	  (list 'mouse 'moved x y))))
+
+  (define (translate-mouse-button-event type event)
+    (let ((b (sdl2:mouse-button-event-button event)))
+      (list 'mousebutton
+	    (if (equal? type 'mouse-button-down)
+		'pressed 'released)
+	    b)))
 
 
-    (define (translate-key-event type event)
+  (define (translate-key-event type event)
     (let ((k (sdl2:keyboard-event-sym event)))
       (list 'key
 	    (if (equal? type sdl2-internals:SDL_KEYUP)
@@ -268,25 +251,26 @@
 		  ((integer->char k)
 		   => identity)
 		  (else 'unknown)))))
-    
- (define (translate-events event escape)
+
+
+  (define (translate-events event escape)
     (if (not event)
 	#f
-	(let ((t (sdl2:event-type event)))
-	  (cond ((equal? t sdl2-internals:SDL_QUIT)
-		 (escape 'quit))
-		((equal? t sdl2-internals:SDL_WINDOWEVENT_EXPOSED)
-		 '(redraw))
-		((or (equal? t sdl2-internals:SDL_MOUSEBUTTONUP)
-		     (equal? t sdl2-internals:SDL_MOUSEBUTTONDOWN)
-		     (equal? t sdl2-internals:SDL_MOUSEMOTION))
-		 (translate-mouse-event t event))
-		((or (equal? t sdl2-internals:SDL_KEYDOWN)
-		     (equal? t sdl2-internals:SDL_KEYUP))
-		 (translate-key-event t event))
-		(else (list 'unknown event))))))
-
-  (define (collect-events)
+	  (case (sdl2:event-type event)
+	    ((quit)	     
+	     (escape 'quit))
+	    ((mouse-motion)
+	     (translate-mouse-motion-event (sdl2:event-type event) event))
+	    ((mouse-button-down)
+	     (translate-mouse-button-event (sdl2:event-type event) event))
+	    ((mouse-button-up)
+	     (translate-mouse-button-event (sdl2:event-type event) event))
+	    ((key-down)
+	     (translate-key-event (sdl2:event-type event) event))
+	    ((key-up)
+	     (translate-key-event (sdl2:event-type event) event)))))
+  
+ (define (collect-events)
     (let pump ((events '()))
       (let ((event (sdl2:make-event)))
 	(if (sdl2:poll-event! event)
@@ -328,7 +312,9 @@
 		 (print-call-chain (current-error-port))
 		 (k (world-ends values)))
 	     (lambda ()
-	       (*world-ends*)))))
+	       (*world-ends*)
+	       ))))
+
 	(sdl2:quit!))))
 
   (define (run-event-loop #!key
@@ -345,8 +331,6 @@
 	 (lambda ()
 	   (*world-inits*)))))
     (sdl2:update-window-surface! *w*)
-;    (gl:Flush)
-;    (sdl-gl-swap-buffers)
     (if run-in-background
 	(thread-start!
 	 (make-thread (event-handler minimum-wait) "doodle-event-loop"))

@@ -1,8 +1,11 @@
-(use matchable doodle)
+(use matchable doodle2)
+
+(define *background-mode* #t)
+(define *time* (/ 1 60))
 
 (world-inits
  (lambda ()
-   (clear-screen)))
+   (clear-screen solid-white)))
 
 (world-changes
  (lambda (events dt exit)
@@ -15,10 +18,15 @@
        	(print "mouse released at x=" x " " "y=" y))
        (('mouse 'moved x y)
 	(print "mouse moving at x=" x " " "y=" y))
+       (('mousebutton 'pressed b)
+	(print "mouse button pressed=" b))
+       (('mousebutton 'released b)
+	(print "mouse button released=" b))
        (('key 'pressed #\esc)
         (exit #t))
        (else (void))))
     events)))
 
-(new-doodle title: "Doodle" background: solid-white)
+(new-doodle2 title: "Doodle2" background: solid-white)
 (run-event-loop)
+;(run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
