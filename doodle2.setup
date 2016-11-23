@@ -1,0 +1,9 @@
+(compile -s "doodle2.scm" -J)
+(compile -s "doodle2.import.scm")
+(compile -s "doodle2-colors.scm" -J)
+(compile -s "doodle2-colors.import.scm")
+
+(install-extension
+ 'doodle2
+ '("doodle2.so" "doodle2.import.so" "doodle2-colors.so" "doodle2-colors.import.so")
+ '((version 0.01)))

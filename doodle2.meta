@@ -1,0 +1,8 @@
+((egg "doodle.egg")
+ (synopsis "A minimal game 'framework' inspired by loeve.")
+ (author "Christian Kellermann")
+ (maintainer "Anes Lihovac")
+ (category graphics)
+ (license "BSD")
+ (needs clojurian matchable sdl2)
+ (files "doodle2.setup" "doodle2.scm" "doodle2.meta"))
