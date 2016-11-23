@@ -1,4 +1,4 @@
-(module doodle-colors
+(module doodle2-colors
         (aliceblue
          antiquewhite
          aqua

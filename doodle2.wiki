@@ -1,6 +1,6 @@
 [[tags: egg]]
 
-== doodle - A minimal game 'framework'.
+== doodle2 - A minimal game 'framework' based on doodle and enhanced for SDL2.
 
 [[toc:]]
 
@@ -12,15 +12,19 @@ A minimal game 'framework' inspired by [[http://love2d.org/|löve]].
 
 === Author
 
-[[/users/christian-kellermann|Christian Kellermann]]
+doodle2: [[/users/christian-kellermann|Anes Lihovac]]
+doodle: [[/users/christian-kellermann|Christian Kellermann]]
 
 === Requirements
 
-Requires the [[miscmacros]], [[cairo]] and [[sdl]] extensions.
+Requires the [[miscmacros]], [[sdl2]] extensions.
 
-=== General program flow of a doodle
+If you experience issues with SDL_GetError which compiling the SDL2 egg, please to install it via:
+SDL2_FLAGS="-I/usr/include/SDL2 -D_REENTRANT -w -L/usr/lib/x86_64-linux-gnu -lSDL2" chicken-install -s sdl2
 
-A program creates a window, called a 'doodle' here and registers for
+=== General program flow of a doodle2
+
+A program creates a SDL2 window and renderer, called a 'doodle' here and registers for
 any of these three events: world-inits, world-ends and
 world-changes. world-inits is called upon the first iteration of the
 event loop, world-ends last and world-changes for every iteration.

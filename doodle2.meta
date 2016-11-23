@@ -1,4 +1,4 @@
-((egg "doodle.egg")
+((egg "doodle2.egg")
  (synopsis "A minimal game 'framework' inspired by loeve.")
  (author "Christian Kellermann")
  (maintainer "Anes Lihovac")
