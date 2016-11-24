@@ -1,4 +1,4 @@
-(use matchable doodle2)
+(use matchable doodle2 doodle2-colors)
 
 (define *background-mode* #t)
 (define *time* (/ 1 60))
@@ -25,8 +25,13 @@
        (('key 'pressed #\esc)
         (exit #t))
        (else (void))))
-    events)))
+    events)
+
+   (clear-screen deeppink)
+   (draw-circle 0 0 0.5 100 solid-black)
+   (update-screen)
+   ))   
 
 (new-doodle2 title: "Doodle2" background: solid-white)
-(run-event-loop)
-;(run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
+;(run-event-loop)
+(run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
