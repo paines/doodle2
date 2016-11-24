@@ -168,7 +168,6 @@
     (sdl2:gl-swap-window! *w*))
   
   (define (clear-screen color)
-
     (gl:ClearColor (car color)
 		   (car (cdr color))
 		   (car (cddr color))
@@ -257,14 +256,16 @@
       (list 'key
 	    (if (equal? type sdl2-internals:SDL_KEYUP)
 		'released 'pressed)
-	    (cond ((equal? k sdl2-internals:SDLK_UP)
+	    (cond ((equal? k 'up)
 		   'up)
-		  ((equal? k sdl2-internals:SDLK_DOWN)
+		  ((equal? k 'down)
 		   'down)
-		  ((equal? k sdl2-internals:SDLK_LEFT)
+		  ((equal? k 'left)
 		   'left)
-		  ((equal? k sdl2-internals:SDLK_RIGHT)
+		  ((equal? k 'right)
 		   'right)
+		  ((equal? k 'escape)
+		   'escape)
 		  ((integer->char k)
 		   => identity)
 		  (else 'unknown)))))
@@ -361,7 +362,7 @@
 		(car (cdr col))
 		(car (cddr col))
 		(car (cdddr col)))
-   
+  
     (gl:Begin gl:LINE_LOOP)
     
     (let ((x 0)
