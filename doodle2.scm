@@ -43,6 +43,7 @@
 ;     blit-image
      check-for-collisions
      clear-screen
+     update-screen
      current-background
      doodle2-width
      doodle2-height
@@ -63,14 +64,17 @@
      world-changes
      world-inits
      world-ends
-     world-update-delay)
+     world-update-delay
+     draw-circle)
 
   (import chicken scheme)
-  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable)
+  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu)
 
   (use (prefix sdl2-internals sdl2-internals:))
   (use (prefix sdl2 sdl2:))
 
+  (define pi 3.1415926535897932384626433832795028842)
+  
   (define *font-color* '(1 1 1 1))
   (define (font-color . c)
     (if (null? c)
@@ -95,10 +99,9 @@
 	(set! *current-background* (car c))))
 
   (define solid-black (list 0 0 0 1))
-  (define solid-white (list 1 1 1 1))
+  (define solid-white (list 255 255 255 0))
 
-;  (define *r* #f) ;sdl renderer
-  (define *w* #f) ;sdl window
+  (define *w* #f)
 
   (define doodle2-width #f)
   (define doodle2-height #f)
@@ -118,33 +121,21 @@
       (error "Please provide a number for the world-update-delay, given " d))
     (set! *minimum-wait* d))
 
-  ;; (define (text x y text #!key (align #:left))
-  ;;   (define (overall-height text)
-  ;;     (let ((l (if (list? text) text (list text))))
-  ;; 	(fold (lambda (t s)
-  ;; 		(let-values (((w h) (text-width t)))
-  ;; 		  (+ s (* 1.5 h))))
-  ;; 	      0
-  ;; 	      l))))
-
-
   (define (save-screenshot filename)
     (pp "TODO"))
     
 
   (define (new-doodle2 #!key
-		      (width 680)
-		      (height 460)
+		      (width 800)
+		      (height 600)
 		      (title "Doodle2")
 		      (color solid-black)
 		      (fullscreen #f))
 
     (sdl2:set-main-ready!)
     (sdl2:init! '(video))
-;    (let-values ((window renderer (sdl2:create-window-and-renderer! width height -1 'opengl)))
-    (set! *w* (sdl2:create-window! title 0 0 width height))
-;      (set! *w* window)
-;      (set! *r* renderer)
+    (set! *w* (sdl2:create-window! title 0 0 width height '(opengl)))
+    (sdl2:gl-create-context! *w*)
     (set! (sdl2:window-title *w*) title)
 
     (set! doodle2-width width)
@@ -152,12 +143,32 @@
 
     (clear-screen color)
 
+    (gl:Viewport 0 0 doodle2-width doodle2-height)
+    (gl:MatrixMode gl:PROJECTION)
+    (gl:LoadIdentity)
+    (gl:ClearColor 1 0 0 0)
+    
+    (glu:Ortho2D -1 1 -1 1)
+    (gl:MatrixMode gl:MODELVIEW)
+    (gl:LoadIdentity)
+
+    ;; (gl:Disable gl:TEXTURE_2D)
+    ;; (gl:Disable gl:DEPTH_TEST)
+    ;; (gl:Disable gl:COLOR_MATERIAL)
+    ;; (gl:Enable gl:BLEND)
+    ;; (gl:Enable gl:POLYGON_SMOOTH)
+    ;; (gl:BlendFunc gl:SRC_ALPHA gl:ONE_MINUS_SRC_ALPHA)
+    ;; (gl:Enable gl:POINT_SMOOTH)
+    
+    (sdl2:window-surface *w*)
     (sdl2:update-window-surface! *w*))
 
+  (define (update-screen)
+    (gl:Flush)
+    (sdl2:gl-swap-window! *w*))
+  
   (define (clear-screen color)
-    (sdl2:fill-rect! (sdl2:window-surface *w*)
-		     #f
-		     (sdl2:make-color (car color) (car (cdr color)) (car (cddr color)) (car (cdddr color)))))
+    (gl:Clear (+ gl:COLOR_BUFFER_BIT gl:DEPTH_BUFFER_BIT)))
 	   
   (define (show!)
     (sdl2:show-window! *w*))
@@ -336,5 +347,20 @@
 	 (make-thread (event-handler minimum-wait) "doodle-event-loop"))
 	(thread-join!
 	 (thread-start!
-	  (make-thread (event-handler minimum-wait) "doodle-event-loop"))))))
+	  (make-thread (event-handler minimum-wait) "doodle-event-loop")))))
+
+  (define (draw-circle cx cy r num-segments)
+    (gl:Color3f 1 0 0)
+    (gl:Begin gl:LINE_LOOP)
+    
+    (let ((x 0)
+	  (y 0)
+	  (theta 0))
+      (do((i 0 (add1 i)))
+	  ((> i num-segments))	
+	(set! theta (/ ( * 2 pi i) num-segments))
+	(set!  x (* r (cos theta)))
+	(set!  y (* r (sin theta)))
+	(gl:Vertex2f (+ x cx) (+ y cy))))
+    (gl:End)))
 

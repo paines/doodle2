@@ -1,4 +1,4 @@
-(use matchable doodle2)
+(use matchable doodle2 gl glu)
 
 (define *background-mode* #t)
 (define *time* (/ 1 60))
@@ -25,8 +25,14 @@
        (('key 'pressed #\esc)
         (exit #t))
        (else (void))))
-    events)))
+    events)
+
+   (clear-screen solid-white)
+   (draw-circle 0 0 0.5 100)
+   (update-screen)
+   ))   
 
 (new-doodle2 title: "Doodle2" background: solid-white)
-(run-event-loop)
-;(run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
+(gl:ClearColor 0 0 0 0)
+;(run-event-loop)
+(run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
