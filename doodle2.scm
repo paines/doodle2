@@ -67,8 +67,7 @@
      world-update-delay
      doodle2-ticks
      draw-circle
-     draw-line
-     draw-spin)
+     draw-line)
 
   (import chicken scheme)
   (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu gl-utils gl-math defstruct)
@@ -425,19 +424,4 @@
     (gl:Begin gl:LINES)
     (gl:Vertex3f x1 y1 0.0)
     (gl:Vertex3f x2 y2 0)
-    (gl:End))
-
-  (define (draw-spin tick col)
-    
-    (let* ((t tick)
-  	   (steps 100)
-  	   (step (/ 1 steps)))
-
-      (do((i 0 (add1 i)))
-  	  ((> i steps))	
-  	(let* ((r (* step i))
-  	       (r2 (+ r step)))
-  	  (draw-line (* r (cos (* t r)))
-  	  	     (* r (sin (* t r)))
-  	  	     (* r2 (cos (* t r2)))
-  	  	     (* r2 (sin (* t r2))) col 0.2))))))
+    (gl:End)))

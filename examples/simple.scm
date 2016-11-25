@@ -3,6 +3,21 @@
 (define *background-mode* #t)
 (define *time* (/ 1 60))
 
+(define (draw-spin tick col)
+  
+  (let* ((t tick)
+	 (steps 100)
+	 (step (/ 1 steps)))
+    
+    (do((i 0 (add1 i)))
+	((> i steps))	
+      (let* ((r (* step i))
+  	       (r2 (+ r step)))
+	(draw-line (* r (cos (* t r)))
+		   (* r (sin (* t r)))
+		   (* r2 (cos (* t r2)))
+		   (* r2 (sin (* t r2))) col 0.2)))))
+
 (world-inits
  (lambda ()
    (clear-screen solid-white)))
@@ -36,8 +51,8 @@
     events)
 
    (clear-screen deeppink)
-   (draw-line 0.0 0.0 0.5 0.5 solid-white 0.2)
-   (draw-circle 0 0 0.3 100 solid-white)
+;   (draw-line 0.0 0.0 0.5 0.5 solid-white 0.2)
+;   (draw-circle 0 0 0.3 100 solid-white)
    (draw-spin (doodle2-ticks) solid-white)
    (update-screen)
    ))   
