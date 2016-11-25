@@ -36,7 +36,9 @@
     events)
 
    (clear-screen deeppink)
-   (draw-circle 0 0 0.5 100 solid-black)
+   (draw-line 0.0 0.0 0.5 0.5 solid-white 0.2)
+   (draw-circle 0 0 0.3 100 solid-white)
+   (draw-spin (doodle2-ticks) solid-white)
    (update-screen)
    ))   
 

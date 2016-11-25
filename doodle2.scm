@@ -59,22 +59,36 @@
      show!
      solid-black
      solid-white
-;     text
+;     textxb
      update-sprite!
      world-changes
      world-inits
      world-ends
      world-update-delay
-     draw-circle)
+     doodle2-ticks
+     draw-circle
+     draw-line
+     draw-spin)
 
   (import chicken scheme)
-  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu)
+  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu gl-utils gl-math defstruct)
 
   (use (prefix sdl2-internals sdl2-internals:))
   (use (prefix sdl2 sdl2:))
 
-  (define pi 3.1415926535897932384626433832795028842)
+  (define projection-matrix #f)
+
+  (define view-matrix
+    (look-at (make-point 1 0 3)
+  	     (make-point 0 0 0)
+  	     (make-point 0 1 0)))
   
+  (define model-matrix (mat4-identity))
+
+  (defstruct point2d
+  x
+  y)
+   
   (define *font-color* '(1 1 1 1))
   (define (font-color . c)
     (if (null? c)
@@ -99,7 +113,7 @@
 	(set! *current-background* (car c))))
 
   (define solid-black (list 0 0 0 1))
-  (define solid-white (list 255 255 255 0))
+  (define solid-white (list 1 1 1 0))
 
   (define *w* #f)
 
@@ -151,7 +165,9 @@
     (glu:Ortho2D -1 1 -1 1)
     (gl:MatrixMode gl:MODELVIEW)
     (gl:LoadIdentity)
-
+    
+;    (set!  projection-matrix (perspective doodle2-width doodle2-height -1 1 90))
+    
     ;; (gl:Disable gl:TEXTURE_2D)
     ;; (gl:Disable gl:DEPTH_TEST)
     ;; (gl:Disable gl:COLOR_MATERIAL)
@@ -162,6 +178,24 @@
     
     (sdl2:window-surface *w*)
     (sdl2:update-window-surface! *w*))
+
+    ;;http://webglfactory.blogspot.de/2011/05/how-to-convert-world-to-screen.html
+  (define (world2screen p vm pm w h)
+    (let* ((vpm (m* pm vm))
+  	   (p3d (m* vpm p))
+  	   (winX (round (* (/ (+ (f32vector-ref p3d 0) 1) 2) w)))
+  	   (winY (round (* (/ (- 1 (f32vector-ref p3d 1)) 2) h)))
+  	   (p2d (make-point2d x: winX y: winY)))
+      p2d))
+
+  (define (screen2world p2d)
+    (let* (
+  	   (x (- (/ (* 2 (point2d-x p2d)) doodle2-width) 1))
+  	   (y (+ (/ (* -2 (point2d-y p2d)) doodle2-height) 1))
+  	   (vpi (inverse projection-matrix view-matrix))
+  	   (p3d (make-point x y 0)))
+      (m* vpi p3d)))
+
 
   (define (update-screen)
     (gl:Flush)
@@ -356,6 +390,9 @@
 	 (thread-start!
 	  (make-thread (event-handler minimum-wait) "doodle-event-loop")))))
 
+  (define (doodle2-ticks)
+    (sdl2:get-ticks))
+  
   (define (draw-circle cx cy r num-segments col)
 
     (gl:Color4f (car col)
@@ -374,5 +411,33 @@
 	(set!  x (* r (cos theta)))
 	(set!  y (* r (sin theta)))
 	(gl:Vertex2f (+ x cx) (+ y cy))))
-    (gl:End)))
+    (gl:End))
 
+
+  (define (draw-line x1 y1 x2 y2 col thickness)
+
+    (gl:Color4f (car col)
+  		(car (cdr col))
+  		(car (cddr col))
+  		(car (cdddr col)))
+    
+    (gl:LineWidth thickness) 
+    (gl:Begin gl:LINES)
+    (gl:Vertex3f x1 y1 0.0)
+    (gl:Vertex3f x2 y2 0)
+    (gl:End))
+
+  (define (draw-spin tick col)
+    
+    (let* ((t tick)
+  	   (steps 100)
+  	   (step (/ 1 steps)))
+
+      (do((i 0 (add1 i)))
+  	  ((> i steps))	
+  	(let* ((r (* step i))
+  	       (r2 (+ r step)))
+  	  (draw-line (* r (cos (* t r)))
+  	  	     (* r (sin (* t r)))
+  	  	     (* r2 (cos (* t r2)))
+  	  	     (* r2 (sin (* t r2))) col 0.2))))))
