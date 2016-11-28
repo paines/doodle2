@@ -55,7 +55,7 @@
      new-doodle2
      remove-sprite!
      run-event-loop
-;     save-screenshot
+     save-screenshot
      show!
      solid-black
      solid-white
@@ -67,13 +67,17 @@
      world-update-delay
      doodle2-ticks
      draw-circle
-     draw-line)
+     draw-line
+     rectangle)
+
 
   (import chicken scheme)
-  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu gl-utils gl-math defstruct)
+  (use (srfi 1 4 18) data-structures extras clojurian-syntax matchable gl glu gl-utils gl-math defstruct lolevel bind)
 
   (use (prefix sdl2-internals sdl2-internals:))
   (use (prefix sdl2 sdl2:))
+
+  (include "helpers.scm")
 
   (define projection-matrix #f)
 
@@ -135,7 +139,13 @@
     (set! *minimum-wait* d))
 
   (define (save-screenshot filename)
-    (pp "TODO"))
+    
+    (define vector (make-vector (* doodle2-width doodle2-height 4)))
+    (gl:ReadPixels 0 0 doodle2-width doodle2-height gl:RGBA gl:UNSIGNED_BYTE (object->pointer vector))
+
+    (sdl2:save-bmp! (sdl2:create-rgb-surface-from* (object->pointer vector) doodle2-width doodle2-height 32 (* 4 doodle2-width) 0 0 0 0) (string-append filename "-" (get-timestamp) ".bmp"))
+    
+    )
     
 
   (define (new-doodle2 #!key
@@ -414,14 +424,23 @@
 
 
   (define (draw-line x1 y1 x2 y2 col thickness)
-
+    (gl:Begin gl:LINES)
     (gl:Color4f (car col)
-  		(car (cdr col))
-  		(car (cddr col))
-  		(car (cdddr col)))
+                (car (cdr col))
+                (car (cddr col))
+                (car (cdddr col)))
     
     (gl:LineWidth thickness) 
-    (gl:Begin gl:LINES)
     (gl:Vertex3f x1 y1 0.0)
     (gl:Vertex3f x2 y2 0)
-    (gl:End)))
+    (gl:End))
+
+  (define (rectangle x0 y0 width height col thickness #!key (filled #f))
+    (if (eq? filled #t)
+        (gl:PolygonMode gl:FRONT_AND_BACK gl:FILL)
+        (gl:PolygonMode gl:FRONT_AND_BACK gl:LINE))
+    (gl:Color4f (car col)
+                (car (cdr col))
+                (car (cddr col))
+                (car (cdddr col)))
+    (gl:Rectf x0 y0 width height)))
