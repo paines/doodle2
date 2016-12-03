@@ -54,9 +54,9 @@
         (else (void))))
     events)
 
-   (clear-screen solid-black)
-   ;(draw-line 0.0 0.0 0.5 0.5 solid-white 0.2)
-;   (draw-circle 0 0 0.3 100 solid-white)
+   (clear-screen deeppink)
+   (draw-line 0.0 0.0 0.5 0.5 solid-white 0.2)
+   (draw-circle 0 0 0.3 100 solid-white)
    (draw-spin (doodle2-ticks) solid-white)
    (rectangle 0 0 0.5 0.5 solid-white 0.2 filled: #t)
    (update-screen)
