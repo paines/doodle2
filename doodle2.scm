@@ -68,7 +68,8 @@
      doodle2-ticks
      draw-circle
      draw-line
-     rectangle)
+     rectangle
+     set-color)
 
 
   (import chicken scheme)
@@ -78,19 +79,6 @@
   (use (prefix sdl2 sdl2:))
 
   (include "helpers.scm")
-
-  (define projection-matrix #f)
-
-  (define view-matrix
-    (look-at (make-point 1 0 3)
-             (make-point 0 0 0)
-             (make-point 0 1 0)))
-  
-  (define model-matrix (mat4-identity))
-
-  (defstruct point2d
-    x
-    y)
   
   (define *font-color* '(1 1 1 1))
   (define (font-color . c)
@@ -174,12 +162,14 @@
     (gl:MatrixMode gl:PROJECTION)
     (gl:LoadIdentity)
     (gl:ClearColor 1 0 0 0)
-    
+
+    (glu:Perspective 45.0 (/ doodle2-width doodle2-height) 0.1 100.0)
+    (gl:Translatef -1.5 0.0 -6.0 )
     (glu:Ortho2D -1 1 -1 1)
     (gl:MatrixMode gl:MODELVIEW)
     (gl:LoadIdentity)
     
-                                        ;    (set!  projection-matrix (perspective doodle2-width doodle2-height -1 1 90))
+                                        
     
     ;; (gl:Disable gl:TEXTURE_2D)
     ;; (gl:Disable gl:DEPTH_TEST)
@@ -192,26 +182,9 @@
 ;    (sdl2:window-surface *w*)
     ;(sdl2:update-window-surface! *w*)
 
+;    (sdl2:render-present! *r*)
     (update-screen)
     )
-
-  ;;http://webglfactory.blogspot.de/2011/05/how-to-convert-world-to-screen.html
-  (define (world2screen p vm pm w h)
-    (let* ((vpm (m* pm vm))
-           (p3d (m* vpm p))
-           (winX (round (* (/ (+ (f32vector-ref p3d 0) 1) 2) w)))
-           (winY (round (* (/ (- 1 (f32vector-ref p3d 1)) 2) h)))
-           (p2d (make-point2d x: winX y: winY)))
-      p2d))
-
-  (define (screen2world p2d)
-    (let* (
-           (x (- (/ (* 2 (point2d-x p2d)) doodle2-width) 1))
-           (y (+ (/ (* -2 (point2d-y p2d)) doodle2-height) 1))
-           (vpi (inverse projection-matrix view-matrix))
-           (p3d (make-point x y 0)))
-      (m* vpi p3d)))
-
 
   (define (update-screen)
     (gl:Flush)
@@ -406,7 +379,13 @@
         (thread-join!
          (thread-start!
           (make-thread (event-handler minimum-wait) "doodle-event-loop")))))
-  
+
+  (define (set-color col)
+    (gl:Color4f (car col)
+                (car (cdr col))
+                (car (cddr col))
+                (car (cdddr col))))
+
   (define (doodle2-ticks)
     (sdl2:get-ticks))
   
