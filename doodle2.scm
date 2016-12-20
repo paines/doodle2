@@ -69,7 +69,8 @@
      draw-circle
      draw-line
      rectangle
-     set-color)
+     set-color
+     noise2d)
 
 
   (import chicken scheme)

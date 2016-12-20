@@ -52,21 +52,23 @@
     (m* vpi p3d)))
 
 
-(define scl .53)
+(define scl 0.5)
 (define (draw-terrain)
-                                        ;  (gl:Rotatef (/ pi 3) 1 0 0)
+  (gl:Rotatef (/ pi `3) 0 0 -1)
                                         ;
                                         ;  (gl:Rotatef pi -1 1 -1)
+
+  (gl:PolygonMode gl:FRONT_AND_BACK gl:LINE)
   (set-color chocolate)
-  (do ((y -5  (+ y scl)))
-      ((> y 5))
+  (do ((y -3.5  (+ y scl)))
+      ((> y 3.5))
     (gl:Begin gl:TRIANGLE_STRIP)
 
-    (do ((x -2 (+ x scl)))
-        ((> x 12))
-      ;(gl:Rotatef (doodle2-ticks) 0 0 .1)
-      (gl:Vertex2d (* x scl) (* y scl ))
-      (gl:Vertex2d (* x scl) (* (+ y 1) scl)))
+    (do ((x -1.5 (+ x scl)))
+        ((> x 7.5))
+     
+      (gl:Vertex3f (* x scl) (* y scl ) (noise2d x y))
+      (gl:Vertex3f (* x scl) (* (+ y 1) scl) (noise2d x (+ y 1))))
     (gl:End)))
 
 (world-inits
@@ -108,7 +110,7 @@
    (update-screen)
    ))   
 
-(new-doodle2 title: "Doodle2" background: solid-white)
+(new-doodle2 title: "Doodle2" background: solid-white width: 600 height: 600)
 ;(run-event-loop)
 (run-event-loop run-in-background: *background-mode* minimum-wait: *time*)
 
